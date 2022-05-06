@@ -1,0 +1,129 @@
+<!-- Costs calculator  -->
+<script type="text/javascript">
+     
+    var emissionsByType = {{emission_types|safe}}
+
+    // function to dynamically populate the emissions type dropdown based on the vehicle type selected by the user
+    function displayEmissions(value,dropdown) {
+        var EmissionOptions ="";
+        for(emissions_type in emissionsByType[value]) {
+            EmissionOptions += "<option value='" + emissionsByType[value][emissions_type] + "'>"+ emissionsByType[value][emissions_type] + "</option>";
+        }
+        document.getElementById(dropdown).innerHTML = EmissionOptions;
+        valid()
+    }
+
+    // function to disable and enable the submit button depending on whether the dropdowns have valid inputs
+    function valid() {
+        vehicle = document.getElementById("vehicle_type").value;
+        submit = document.getElementById("cost_submit") 
+        console.log(vehicle)
+        if (vehicle == ""){
+            submit.setAttribute("disabled", "")
+        }
+        else{
+            submit.removeAttribute("disabled");
+        }
+    }
+
+</script>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+        <title>Vehicle Fleet Costs and Emissions</title>
+    </head>
+    <body>
+        
+	    <h1>Return related costs</h1>
+
+        <form action="/cost/" method="POST">
+            <div class="container">
+                Find all the costs associated with this Vehicle type and Emission type
+                <br/>
+                <label for="vehicle_type">Choose a vehicle type:</label>
+                <br/>
+                <select name="vehicle_type" id="vehicle_type" onchange="displayEmissions(this.value, 'emissions_dropdown_cost')">
+                    <option value="" disabled selected>Select</option>
+                    {%for type in vehicle_types%}
+                        {%for col in type%}
+                     <option value={{col}}>{{col}}</option> 
+                        {%endfor%}
+                    {%endfor%}
+                </select> 
+                <br/>
+                <select name="emission_type" id="emissions_dropdown_cost"> 
+                    <option value="" disabled selected>Select</option>
+                </select>
+                <br/>
+                <input id= "cost_submit" type="submit" value="Submit" disabled>
+            </div>
+        </form>
+
+        <div id="Result"></div>
+        {% if info is defined %}
+            <script>
+            // function to display cost info depending on form data
+            function displayInfo(){
+                var costs_info = {{info|safe}};
+                console.log(costs_info);
+                var result = document.getElementById("Result");
+
+                // costs calculated based on those done in excel sheet provided by stakeholders
+                var initial_capital = costs_info["initial_capital"] / 12
+                var fuel_costs = costs_info["fuel_per_mile"] * costs_info["mileage"]
+                var maintenance_costs = costs_info["maintenance_per_mile"] * costs_info["mileage"]
+                var tire_costs = costs_info["mileage"] * 500 / (40000 * 12)
+                var battery_costs = costs_info["battery"] / 12
+                var insurance_costs = costs_info["insurance"] / 12
+                var repair_costs = costs_info["repair"] / 12
+                var annual_costs = fuel_costs + maintenance_costs + tire_costs + battery_costs + insurance_costs + repair_costs + initial_capital;
+                var text = "Vehicle Type: " + costs_info["vehicle_type"] +"<br/>"+
+                    "Emissions Type: " + costs_info["emissions_type"] +"<br/>"+
+                    "Anticipated Mileage: " + costs_info["mileage"] +"<br/>"+
+                    "Miles Per Gallon: " + costs_info["mpg"] +"<br/>"+
+                    "Initial Capital Costs: $" + costs_info["initial_capital"] +"<br/>"+
+                    "Annual Fuel Cost: $" + fuel_costs +"<br/>"+
+                    "Annual Maintenance Cost: $" + maintenance_costs +"<br/>"+
+                    "Annual Tire Costs: $" + tire_costs +"<br/>"+
+                    "Annual Battery Costs: $" + battery_costs +"<br/>"+
+                    "Annual Insurance Costs: $"  + insurance_costs +"<br/>"+
+                    "Annual Repair Costs: $"  + insurance_costs +"<br/>"+
+                    "Annual Costs: $" + annual_costs;
+                result.innerHTML = text
+            }                         
+
+            displayInfo();
+            </script>
+        {% endif %}
+
+
+    </body>
+
+    <!-- minimal styling -->
+    <style>
+        form {
+            margin: 1%;
+        }
+
+        div {
+            margin: 1% 0;
+        }
+
+        th:tr{
+        color: blue;
+        }
+        tr:nth-of-type(2n){
+            border: 1px solid black;
+            background-color: rgba(150, 150, 150, 0.5);
+        }
+
+        td{
+            padding: 8px 8px;
+            border: 1px solid black;
+        }
+    </style>
+</html>

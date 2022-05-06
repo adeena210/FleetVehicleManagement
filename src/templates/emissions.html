@@ -1,0 +1,116 @@
+<!-- Emissions calculator -->
+<script type="text/javascript">
+     
+    var emissionsByType = {{emission_types|safe}}
+
+    // function to dynamically populate the emissions type dropdown based on the vehicle type chosen by the user 
+    function displayEmissions(value,dropdown) {
+        var EmissionOptions ="";
+        for(emissions_type in emissionsByType[value]) {
+            EmissionOptions += "<option value='" + emissionsByType[value][emissions_type] + "'>"+ emissionsByType[value][emissions_type] + "</option>";
+        }
+        document.getElementById(dropdown).innerHTML = EmissionOptions;
+        valid()
+    }
+
+    // function to disable and enable the submit button depending on whether the dropdowns have valid inputs
+    function valid() {
+        vehicle = document.getElementById("vehicle_type").value;
+        submit = document.getElementById("emissions_submit") 
+        console.log(vehicle)
+        if (vehicle == ""){
+            submit.setAttribute("disabled", "")
+        }
+        else{
+            submit.removeAttribute("disabled");
+        }
+    }
+
+</script>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+        <title>Vehicle Fleet Costs and Emissions</title>
+    </head>
+    <body>
+        
+        <h1>Return related emissions</h1>
+        <form action="/emissions/" method="POST">
+            <div class="container">
+                Find all the emissions information associated with this Vehicle type and Emission type
+                <br/>
+                <label for="vehicle_type">Choose a vehicle type:</label>
+                </br>
+                <select name="vehicle_type" id="vehicle_type" onchange="displayEmissions(this.value, 'emissions_dropdown_em')">
+                    <option value="" disabled selected>Select</option>
+                    {%for type in vehicle_types%}
+                        {%for col in type%}
+                     <option value={{col}}>{{col}}</option> 
+                        {%endfor%}
+                    {%endfor%}
+                </select>
+                <br/>
+                <select name="emission_type" id="emissions_dropdown_em"> 
+                    <option value="" disabled selected>Select</option>
+                </select>
+                <br/>
+                <input id="emissions_submit" type="submit" value="Submit" disabled>
+        </div>
+        </form>
+            <div id="Result"></div>
+            {% if info is defined %}
+                <script>
+                // function to display emissions info depending on form data
+                function displayInfo(){
+                    var emissions_info = {{info|safe}};
+                    console.log(emissions_info);
+                    var result = document.getElementById("Result");
+                    var annual_emissions = emissions_info["ece"] * emissions_info["mileage"];
+                    if (emissions_info["mpg"] != 0){
+                        annual_emissions /= emissions_info["mpg"];
+                    }
+                    
+                    var text = "Vehicle Type: " + emissions_info["vehicle_type"] +"<br/>"+
+                        "Emissions Type: " + emissions_info["emissions_type"] +"<br/>"+
+                        "Anticipated Mileage: " + emissions_info["mileage"] +"<br/>"+
+                        "Miles Per Gallon: " + emissions_info["mpg"] +"<br/>"+
+                        "Estimated Carbon Emissions: " + emissions_info["ece"] +"<br/>"+
+                        "Annual Emissions: " + annual_emissions;
+
+                    result.innerHTML = text
+                }                         
+
+                displayInfo();
+                </script>
+            {% endif %}
+
+
+    </body>
+
+    <!-- minimal styling -->
+    <style>
+        form {
+            margin: 1%;
+        }
+
+        div {
+            margin: 1% 0;
+        }
+        th:tr{
+        color: blue;
+        }
+        tr:nth-of-type(2n){
+            border: 1px solid black;
+            background-color: rgba(150, 150, 150, 0.5);
+        }
+
+        td{
+            padding: 8px 8px;
+            border: 1px solid black;
+        }
+    </style>
+</html>

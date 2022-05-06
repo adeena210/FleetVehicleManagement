@@ -1,0 +1,82 @@
+<!-- Fleet Costs and Emissions Calculator -->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+        <title>Vehicle Fleet Costs and Emissions</title>
+    </head>
+    <body>
+    <h1>Fleet Costs and Emissions Calculator</h1>
+    <form action="/fleet/" method="POST">
+        <div class="container">
+           {%for type in vehicle_types%}
+                {%for col in type%}
+                {{col}}
+                <div id={{col}}></div>
+                <br/>
+                <script>
+                var emissionsByType = {{emission_types|safe}}
+                // function to get all the emission types for a specific vehicle
+                function displayEmissions(value,div) {
+                    var EmissionOptions ="";
+                    for(emissions_type in emissionsByType[value]) {
+                        EmissionOptions += " "+ emissionsByType[value][emissions_type] + " <input type='number' id=" + value + "_" + emissionsByType[value][emissions_type] + " name=" + value + "_" + emissionsByType[value][emissions_type] + " min='0' >"
+                    }
+                    document.getElementById(div).innerHTML = EmissionOptions;
+                }
+                displayEmissions({{col|tojson}},{{col|tojson}})</script>
+                <br/>
+                {%endfor%} 
+            {%endfor%}
+            <input type="submit" value="Calculate costs and emissions" onclick="displayinfo();">
+        </div>
+    </form>
+
+    <div id="Result"></div>
+
+    {% if info is defined %}
+        <script>
+    //function to calculate the annual emissions for a given vehicle and emission type
+    function calculate_emissions(data){
+        var annual_emissions = data["ece"] * data["mileage"];
+        if (data["mpg"] != 0){
+            annual_emissions /= data["mpg"];
+        }
+        return annual_emissions
+    }
+
+    // function to calculate the annual costs for a given vehicle and emission type
+    function calculate_costs(data){
+        var initial_costs = data["initial_capital"] / 12
+        var fuel_costs = data["fuel_per_mile"] * data["mileage"]
+        var maintenance_costs = data["maintenance_per_mile"] * data["mileage"]
+        var tire_costs =data["mileage"] * 500 / (40000 * 12)
+        var battery_costs = data["battery"] / 12
+        var insurance_costs = data["insurance"] / 12
+        var repair_costs = data["repair"] / 12
+        var annual_costs = initial_costs + fuel_costs + maintenance_costs + tire_costs + battery_costs + insurance_costs + repair_costs;
+        return annual_costs
+    }
+
+    // function to display annual costs and annual emissions associated with a fleet
+    function displayinfo(){
+        var annual_emissions = 0
+        var annual_costs = 0
+        var data = {{info | safe}}
+        var result = document.getElementById("Result");
+        for (category in data){
+            annual_emissions += data[category]["quantity"] * calculate_emissions(data[category])
+            annual_costs += data[category]["quantity"] * calculate_costs(data[category])
+        }
+        text = "Annual Costs: $"+annual_costs+"<br/> Annual Emissions: "+ annual_emissions
+        result.innerHTML = text
+
+    }
+        displayinfo()</script>
+        
+    {% endif %}
+
+    </body>
