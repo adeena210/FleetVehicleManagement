@@ -10,7 +10,7 @@ In the push for improving the current state of the environment, many businesses 
 The objective of this project is to build an application that allows a user to calculate the annual costs and emissions associated with a particular vehicle type and emission type as well as calculate the total annual costs and emissions associated with a fleet. We believe this project is important as we cannot jump to a solution for the carbon neutral problem without a system for testing the possibilities towards reaching this goal. Before TCNJ even begins spending time and money on potential environmental efforts, our system will provide algorithmic information to help determine which option the school should take.
 
 <h3>License</h3>
-To view the license for this project, click <a href="https://github.com/TCNJ-degoodj/cab-project-01-5/blob/main/LICENSE"> here! </a>
+To view the license for this project, click <a href="https://github.com/adeena210/FleetVehicleManagement/blob/master/LICENSE"> here! </a>
 
 
 <h3>Installation Guide</h3>
